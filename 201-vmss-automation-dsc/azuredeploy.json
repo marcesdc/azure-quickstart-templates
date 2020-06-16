@@ -95,6 +95,15 @@
       },
       "defaultValue": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/201-vmss-automation-dsc/"
     },
+    # Generate the value for artifacts location SAS token if it is not provided in the parameter file{
+ $ArtifactsLocationSasToken = $OptionalParameters[$ArtifactsLocationSasTokenName]
+$artifactsStorageContainer = Get-AzureStorageContainer -Context $StorageAccountContext
+    if ($ArtifactsLocationSasToken -eq $null) {
+   # Create a SAS token for the storage container - this gives temporary read-only access to the container (defaults to 1 hour).
+       $ArtifactsLocationSasToken = New-AzureStorageContainerSASToken -Container $artifactsStorageContainer.Name -Context $StorageAccountContext -Permission r
+       $ArtifactsLocationSasToken = ConvertTo-SecureString $ArtifactsLocationSasToken -AsPlainText -Force
+       $OptionalParameters[$ArtifactsLocationSasTokenName] = $ArtifactsLocationSasToken
+    }
     "_artifactsLocationSasToken": {
       "type": "string",
       "metadata": {
